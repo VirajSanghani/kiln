@@ -1,0 +1,12 @@
+# Dev override (auto-applied by `docker compose up`). Bind-mounts source so code and
+# generated migration files appear on the host without rebuilding the image. The base
+# docker-compose.yml remains the deployable definition (code COPYed into the image).
+services:
+  api:
+    volumes:
+      - ./api:/app/api
+      - ./db:/app/db
+  web:
+    volumes:
+      - ./web:/app
+      - /app/node_modules # anonymous volume keeps the image's installed deps
