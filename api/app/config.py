@@ -17,5 +17,14 @@ class Settings(BaseSettings):
     # Comma-separated origins allowed for direct (non-proxied) browser calls in dev.
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
+    # Auth (minimal username/password + JWT; no SSO).
+    jwt_secret: str = "dev-only-not-secret"
+    jwt_alg: str = "HS256"
+    token_ttl_minutes: int = 720
+
+    # Blob storage (local volume now; S3-compatible seam documented).
+    storage_dir: str = "/app/storage"
+    max_upload_bytes: int = 100 * 1024 * 1024  # 100 MB cap per FileVersion
+
 
 settings = Settings()
