@@ -48,6 +48,7 @@ from app.enums import (
     QueueState,
     UserRole,
 )
+from app.security import hash_password
 from app.models import (
     Build,
     FileVersion,
@@ -122,11 +123,11 @@ def build():
     try:
         wipe(session)
 
-        # ---- people ----
-        rk = User(username="rk", display_name="Riley K.", role=UserRole.operator)
-        sam = User(username="sam", display_name="Sam O.", role=UserRole.operator)
-        ana = User(username="ana", display_name="Ana P.", role=UserRole.requester)
-        ben = User(username="ben", display_name="Ben T.", role=UserRole.requester)
+        # ---- people (demo password = "<username>-pw", e.g. rk-pw / ana-pw) ----
+        rk = User(username="rk", display_name="Riley K.", role=UserRole.operator, password_hash=hash_password("rk-pw"))
+        sam = User(username="sam", display_name="Sam O.", role=UserRole.operator, password_hash=hash_password("sam-pw"))
+        ana = User(username="ana", display_name="Ana P.", role=UserRole.requester, password_hash=hash_password("ana-pw"))
+        ben = User(username="ben", display_name="Ben T.", role=UserRole.requester, password_hash=hash_password("ben-pw"))
         session.add_all([rk, sam, ana, ben])
 
         # ---- materials (some with reorder thresholds, some without — R6) ----

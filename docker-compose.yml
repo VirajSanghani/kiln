@@ -30,6 +30,8 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      STORAGE_DIR: /app/storage
     depends_on:
       db:
         condition: service_healthy
