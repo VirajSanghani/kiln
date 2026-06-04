@@ -10,7 +10,7 @@ An operator can always answer "why is this job next?" — that legibility is the
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..enums import PRIORITY_RANK, Priority
 from .config import SchedulerConfig
@@ -19,7 +19,12 @@ _RANK_TO_PRIORITY = {rank: prio for prio, rank in PRIORITY_RANK.items()}
 
 
 def _entered_queue_at(job) -> datetime | None:
-    return job.queued_at or job.created_at
+    dt = job.queued_at or job.created_at
+    # SQLite round-trips DateTimes as naive; treat naive as UTC so arithmetic with the
+    # (tz-aware) config.now is well-defined on both backends. Postgres returns aware.
+    if dt is not None and dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 def age_hours(job, config: SchedulerConfig) -> float:
