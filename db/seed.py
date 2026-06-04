@@ -393,6 +393,35 @@ def build():
         ev(session, frm="submitted", to="cancelled", at=ago(days=3), job=j_cancel, actor=ana,
            note="design superseded")
 
+        # ===============================================================================
+        # QUEUED BACKLOG — feeds the scheduler's capability buckets + proposals.
+        # FDM jobs bucket onto the idle Bambu-X1C; SLS jobs batch onto the idle EOS.
+        # ===============================================================================
+        backlog: list[Job] = []
+
+        def queued(title, requester, process, mat, prio, deadline_days, age_h, bbox, est, unit):
+            tk = Ticket(requester=requester, title=title, target_process=process, material_pref=mat,
+                        priority=prio, deadline=(ahead(deadline_days) if deadline_days is not None else None),
+                        created_at=ago(hours=age_h))
+            fv = FileVersion(ticket=tk, version_no=1, filename=f"{title.replace(' ', '_')}.stl",
+                             blob_key=f"dev/q/{title}.stl", slicer_name="PrusaSlicer",
+                             est_time_seconds=int(est * 120), est_material_qty=est, est_material_unit=unit,
+                             bbox_x=bbox[0], bbox_y=bbox[1], bbox_z=bbox[2], created_at=ago(hours=age_h))
+            tk.current_file_version = fv
+            j = Job(ticket=tk, created_at=ago(hours=age_h), queued_at=ago(hours=age_h))
+            session.add_all([tk, fv, j])
+            queue_chain(session, j, through=QueueState.queued, actor=rk, start=ago(hours=age_h))
+            backlog.append(j)
+            return j
+
+        queued("heatsink bracket", ana, ProcessType.FDM, "PA12-CF", Priority.critical, 1, 2, (60, 40, 20), 25, "g")
+        queued("sensor mount", ben, ProcessType.FDM, "PA12-CF", Priority.high, 3, 5, (50, 50, 25), 30, "g")
+        queued("washer x10", ana, ProcessType.FDM, "PA12-CF", Priority.normal, 5, 8, (30, 30, 8), 12, "g")
+        queued("jig adapter", ben, ProcessType.FDM, "PA12-CF", Priority.low, None, 100, (80, 60, 20), 40, "g")  # boost
+        queued("bevel gear", ana, ProcessType.SLS, "PA12", Priority.normal, 6, 6, (80, 80, 40), 120, "g")
+        queued("spur gear", ben, ProcessType.SLS, "PA12", Priority.normal, 6, 5, (60, 60, 40), 90, "g")
+        queued("bushing set", ana, ProcessType.SLS, "PA12", Priority.normal, 6, 4, (50, 50, 30), 60, "g")
+
         # ---- notifications (a couple, generated on requester-relevant events) ----
         session.add_all([
             Notification(user=ana, ticket=t5, job=j_t5, kind=NotificationKind.failed,
@@ -407,7 +436,7 @@ def build():
         # -------------------------------------------------------------------------------
         all_builds = [b_old, b117, b_done, b_sls, b_sla, b_mjf]
         all_jobs = [j_old, j_new, j_mount, j_t3, j_t4, j_t5, j_g1, j_g2, j_lens, j_mjf,
-                    j_spacer, j_cap, j_vent, j_cancel]
+                    j_spacer, j_cap, j_vent, j_cancel] + backlog
         all_materials = [m_petg, m_pa12cf, m_tpu, m_clear, m_tough, m_powder, m_agent]
         session.flush()  # assign ids so event ordering ties are stable
         for b in all_builds:
