@@ -1,9 +1,11 @@
-"""KILN API entrypoint (Phase 0 skeleton)."""
+"""KILN API entrypoint."""
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import health
+from .routers import auth, builds, health, inventory, jobs, notifications, schedule, tickets
 
 app = FastAPI(title="KILN API", version=settings.version)
 
@@ -15,7 +17,11 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.include_router(health.router)
+# blob storage dir (local volume dev; S3 seam in prod)
+os.makedirs(settings.storage_dir, exist_ok=True)
+
+for r in (health, auth, tickets, jobs, builds, schedule, inventory, notifications):
+    app.include_router(r.router)
 
 
 @app.get("/")

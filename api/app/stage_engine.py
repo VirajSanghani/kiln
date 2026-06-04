@@ -193,12 +193,9 @@ def cancel_job(session: "Session", job: "Job", *, actor=None, note=None):
     return _job_override(session, job, JobTerminalStatus.cancelled, actor=actor, note=note)
 
 
-# --------------------------------------------------------------------------- seam hook
+# --------------------------------------------------------------------------- done hook
 def on_done(session: "Session", build: "Build") -> None:
-    """Hook fired when a Build reaches Done.
-
-    Phase 4 wires material decrement + per-Job allocation + ready-for-pickup
-    notifications here. Phase 2 leaves it a documented no-op so the engine stays
-    scope-fenced to stage logic.
-    """
-    return None
+    """Fired when a Build reaches Done — delegates to fulfillment (material decrement +
+    Job allocation + ready notifications), all in the caller's transaction (Phase 4)."""
+    from . import fulfillment  # local import keeps the engine import graph acyclic
+    fulfillment.on_build_done(session, build)
