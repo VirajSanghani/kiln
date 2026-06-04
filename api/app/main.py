@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
-from .routers import auth, builds, health, inventory, jobs, notifications, schedule, tickets
+from .routers import auth, builds, dashboard, health, inventory, jobs, notifications, schedule, tickets
 
 app = FastAPI(title="KILN API", version=settings.version)
 
@@ -20,7 +20,7 @@ app.add_middleware(
 # blob storage dir (local volume dev; S3 seam in prod)
 os.makedirs(settings.storage_dir, exist_ok=True)
 
-for r in (health, auth, tickets, jobs, builds, schedule, inventory, notifications):
+for r in (health, auth, tickets, jobs, builds, schedule, inventory, notifications, dashboard):
     app.include_router(r.router)
 
 

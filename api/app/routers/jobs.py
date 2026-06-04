@@ -18,6 +18,26 @@ from ..serialize import job_out
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
 
+def _job_list_item(j):
+    out = job_out(j)
+    out["ticket_title"] = j.ticket.title
+    out["target_process"] = j.ticket.target_process.value
+    out["material_pref"] = j.ticket.material_pref
+    out["priority"] = j.ticket.priority.value
+    out["requester"] = j.ticket.requester.username
+    return out
+
+
+@router.get("")
+def list_jobs(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    from sqlalchemy import select
+    q = select(Job).order_by(Job.created_at.desc())
+    jobs = db.scalars(q).all()
+    if user.role != UserRole.operator:
+        jobs = [j for j in jobs if j.ticket.requester_id == user.id]   # requester: own only
+    return [_job_list_item(j) for j in jobs]
+
+
 def _get(db, job_id) -> Job:
     job = db.get(Job, job_id)
     if job is None:

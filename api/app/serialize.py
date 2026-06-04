@@ -56,7 +56,8 @@ def ticket_out(t, *, full=False):
 
 def _recipe_spine(process):
     return [{"name": s.name, "label": s.label, "type": s.type,
-             "occupies_machine": s.occupies_machine} for s in recipe_for(process)]
+             "occupies_machine": s.occupies_machine, "allowed_next": list(s.allowed_next)}
+            for s in recipe_for(process)]
 
 
 def build_out(b, *, full=False):

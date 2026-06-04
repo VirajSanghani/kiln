@@ -18,8 +18,21 @@ router = APIRouter(prefix="/api/schedule", tags=["schedule"])
 
 
 @router.get("")
-def get_schedule(db: Session = Depends(get_db), op: User = Depends(require_operator)):
-    return asdict(build_schedule(db, SchedulerConfig()))
+def get_schedule(
+    fdm: bool | None = None, sla: bool | None = None,
+    sls: bool | None = None, mjf: bool | None = None,
+    age_boost_hours: float | None = None,
+    db: Session = Depends(get_db), op: User = Depends(require_operator),
+):
+    from ..enums import ProcessType
+    cfg = SchedulerConfig()
+    overrides = {ProcessType.FDM: fdm, ProcessType.SLA: sla, ProcessType.SLS: sls, ProcessType.MJF: mjf}
+    for proc, val in overrides.items():
+        if val is not None:
+            cfg.batching[proc] = val
+    if age_boost_hours is not None:
+        cfg.age_boost_hours = age_boost_hours
+    return asdict(build_schedule(db, cfg))
 
 
 @router.post("/confirm")
