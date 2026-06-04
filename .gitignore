@@ -31,4 +31,5 @@ storage/*
 # playwright / screenshots
 .playwright-mcp/
 *.png
-!docs/screenshots/*.png   # committed README screenshots are kept
+# committed README screenshots are kept (own line — gitignore has no inline comments)
+!docs/screenshots/*.png
