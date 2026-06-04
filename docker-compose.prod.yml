@@ -1,0 +1,59 @@
+# KILN — production stack. One command: `docker compose -f docker-compose.prod.yml up --build`.
+# Differences from dev: web is the nginx static image (no Vite, no bind mounts), api runs
+# multiple uvicorn workers, nothing is source-mounted. Secrets come from .env.
+#
+# NOTE: this is PREPARED, not deployed. See docs/deploy.md. Set a real JWT_SECRET and
+# POSTGRES_PASSWORD in .env before exposing this anywhere.
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      STORAGE_DIR: /app/storage
+    # override the image ENTRYPOINT: migrate once, then serve with multiple workers
+    entrypoint: ["sh", "-c", "alembic -c /app/db/alembic.ini upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"]
+    volumes:
+      - blobstore:/app/storage   # named volume; swap for an S3 backend in real prod
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\""]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata_prod:
+  blobstore:
