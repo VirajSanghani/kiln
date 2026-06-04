@@ -27,3 +27,7 @@ storage/*
 *.swp
 .idea/
 .vscode/
+
+# playwright / screenshots
+.playwright-mcp/
+*.png
