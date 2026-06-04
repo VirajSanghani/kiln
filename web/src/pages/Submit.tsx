@@ -63,7 +63,7 @@ export default function Submit() {
               <textarea rows={3} value={summary} placeholder="; estimated printing time (normal mode) = 1h 48m&#10;; filament used [g] = 22"
                 onChange={(e) => setSummary(e.target.value)} /></div>
             <button className="btn btn-primary" disabled={submit.isPending}>{submit.isPending ? "…" : "Submit"}</button>
-            {msg && <div className="hint" style={{ marginTop: 10, color: "var(--ok)" }}>{msg}</div>}
+            {msg && <div className="hint" style={{ marginTop: 10, color: "var(--green)" }}>{msg}</div>}
             {submit.isError && <div className="error" style={{ marginTop: 10 }}>{(submit.error as any)?.message}</div>}
           </form>
         </Panel>

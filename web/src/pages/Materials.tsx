@@ -33,9 +33,7 @@ export default function Materials() {
                 <td>
                   {m.warnings.length === 0 ? <span className="muted">—</span> :
                     m.warnings.map((w: any, i: number) => (
-                      <div key={i} className={`warn-line sev-${w.severity}`}>
-                        {w.severity === "critical" ? "✕" : w.severity === "warn" ? "⚠" : "·"} {w.message}
-                      </div>
+                      <div key={i} className={`warn-line sev-${w.severity}`}>{w.message}</div>
                     ))}
                 </td>
                 <td>

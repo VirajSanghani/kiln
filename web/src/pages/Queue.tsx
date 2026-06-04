@@ -55,7 +55,7 @@ export default function Queue() {
                 <div className="mono-sm">{j.target_process} · {j.material_pref ?? "—"} · {j.priority} · {j.requester}</div>
                 <button className="btn btn-sm btn-primary" style={{ marginTop: 6 }}
                   disabled={queueJob.isPending}
-                  onClick={() => queueJob.mutate(j.id)}>→ Queue</button>
+                  onClick={() => queueJob.mutate(j.id)}>Queue</button>
               </div>
             ))}
           </Lane>
@@ -95,7 +95,7 @@ export default function Queue() {
                     <StatusPill status={bk.busy ? (bk.printer_status === "printing" ? "printing" : "running") : "queued"} />
                   </span>
                 </div>
-                {bk.preemption_note && <div className="warn-line sev-warn">⚠ {bk.preemption_note}</div>}
+                {bk.preemption_note && <div className="warn-line sev-warn">{bk.preemption_note}</div>}
                 {bk.next_up.length === 0 ? <div className="mono-sm muted">— no eligible jobs</div> : (
                   <table>
                     <tbody>
@@ -103,7 +103,7 @@ export default function Queue() {
                         <tr key={r.job_id}>
                           <td className="muted" style={{ width: 18 }}>{i + 1}</td>
                           <td>{r.title}{r.needs_swap && <> <span className="badge-est">swap</span></>}</td>
-                          <td>{r.boosted ? <span className="pill pill-boost">⚡ boosted</span> : <span className="mono-sm">{r.priority}</span>}</td>
+                          <td>{r.boosted ? <span className="pill pill-boost">boosted</span> : <span className="mono-sm">{r.priority}</span>}</td>
                           <td className="mono-sm">{r.reason}</td>
                         </tr>
                       ))}
@@ -139,7 +139,7 @@ export default function Queue() {
                   {p.needs_swap && <span className="badge-est" style={{ marginLeft: 6 }}>needs swap</span>}
                 </div>
                 <div className={"warn-line " + (p.material.fits ? "sev-info" : "sev-warn")}>
-                  {p.material.fits ? "✓ " : "⚠ "}{p.material.note} <span className="badge-est">est.</span>
+                  {p.material.note} <span className="badge-est">est.</span>
                 </div>
                 <div className="row" style={{ marginTop: 8 }}>
                   <button className="btn btn-sm btn-primary" disabled={confirm.isPending}
