@@ -1,75 +1,86 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchReadiness } from "./api";
+import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useAuth } from "./auth";
+import { Loading } from "./ui";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Queue from "./pages/Queue";
+import BuildDetail from "./pages/BuildDetail";
+import TicketDetail from "./pages/TicketDetail";
+import Fleet from "./pages/Fleet";
+import Materials from "./pages/Materials";
+import Submit from "./pages/Submit";
 
-export default function App() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["health"],
-    queryFn: fetchReadiness,
-    refetchInterval: 5000,
-  });
+const OP_NAV = [
+  { to: "/", label: "Dashboard", end: true },
+  { to: "/queue", label: "Queue & Schedule" },
+  { to: "/fleet", label: "Fleet" },
+  { to: "/materials", label: "Material shelf" },
+];
 
-  const apiOk = !isError && !!data;
-  const dbConnected = data?.db === "connected";
-
+function Shell() {
+  const { user, logout } = useAuth();
+  const isOp = user?.role === "operator";
   return (
-    <div className="shell">
-      <header className="masthead">
-        <div className="wordmark">KILN</div>
-        <div className="subtitle">print-lab operations · skeleton</div>
-      </header>
-
-      <main className="card">
-        <h1>Stack check</h1>
-        <p className="lede">React shell → API → Postgres, verified end to end.</p>
-
-        <div className="status-grid">
-          <StatusRow
-            label="Web shell"
-            ok={true}
-            detail="vite + react + tanstack query"
-          />
-          <StatusRow
-            label="API"
-            ok={apiOk}
-            detail={
-              isLoading
-                ? "contacting…"
-                : isError
-                  ? "unreachable"
-                  : `${data?.service} v${data?.version}`
-            }
-          />
-          <StatusRow
-            label="Database"
-            ok={dbConnected}
-            detail={isLoading ? "—" : (data?.db ?? "unknown")}
-          />
+    <div className="app">
+      <aside className="sidebar">
+        <div className="brand">KILN</div>
+        <div className="brand-sub">print-lab operations</div>
+        <nav className="nav">
+          {isOp
+            ? OP_NAV.map((n) => (
+                <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => (isActive ? "active" : "")}>
+                  {n.label}
+                </NavLink>
+              ))
+            : (
+              <NavLink to="/submit" className={({ isActive }) => (isActive ? "active" : "")}>
+                Submit a print
+              </NavLink>
+            )}
+        </nav>
+        <div className="nav-foot">
+          {user?.display_name} · {user?.role}
+          <div>
+            <button className="btn btn-sm btn-ghost" onClick={logout}>sign out</button>
+          </div>
         </div>
-
-        {data?.time && <p className="ts">last checked {data.time}</p>}
+      </aside>
+      <main className="main">
+        <Routes>
+          {isOp ? (
+            <>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/queue" element={<Queue />} />
+              <Route path="/fleet" element={<Fleet />} />
+              <Route path="/materials" element={<Materials />} />
+              <Route path="/builds/:id" element={<BuildDetail />} />
+              <Route path="/tickets/:id" element={<TicketDetail />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          ) : (
+            <>
+              <Route path="/submit" element={<Submit />} />
+              <Route path="/tickets/:id" element={<TicketDetail />} />
+              <Route path="*" element={<Navigate to="/submit" replace />} />
+            </>
+          )}
+        </Routes>
       </main>
-
-      <footer className="footnote">
-        Phase 0 — skeleton only. No data model yet.
-      </footer>
     </div>
   );
 }
 
-function StatusRow({
-  label,
-  ok,
-  detail,
-}: {
-  label: string;
-  ok: boolean;
-  detail: string;
-}) {
-  return (
-    <div className="status-row">
-      <span className={`dot ${ok ? "dot-ok" : "dot-bad"}`} />
-      <span className="status-label">{label}</span>
-      <span className="status-detail">{detail}</span>
-    </div>
-  );
+export default function App() {
+  const { user, loading } = useAuth();
+  const loc = useLocation();
+  if (loading) return <div className="login-wrap"><Loading /></div>;
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace state={{ from: loc }} />} />
+      </Routes>
+    );
+  }
+  return <Shell />;
 }
