@@ -24,6 +24,7 @@ def _job_list_item(j):
     out["target_process"] = j.ticket.target_process.value
     out["material_pref"] = j.ticket.material_pref
     out["priority"] = j.ticket.priority.value
+    out["deadline"] = j.ticket.deadline.isoformat() if j.ticket.deadline else None
     out["requester"] = j.ticket.requester.username
     return out
 

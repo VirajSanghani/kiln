@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../api";
-import { Loading, PageHead } from "../ui";
+import { Link } from "react-router-dom";
+import { api, ago } from "../api";
+import { PageHead, SkeletonTiles } from "../ui";
 
 // The hero surface. EVERY figure comes from /api/dashboard, derived from a real query.
 // Each tile: LABEL → big Fraunces NUMBER → CONTEXT (real trend vs prior period / target /
@@ -17,8 +18,13 @@ function Trend({ delta, unit = "", goodWhenUp = true }: { delta: number; unit?: 
 }
 
 export default function Dashboard() {
-  const { data, isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: () => api.get("/dashboard") });
-  if (isLoading || !data) return <><PageHead title="Ops dashboard" /><Loading /></>;
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard"], queryFn: () => api.get("/dashboard"), refetchInterval: 12000,
+  });
+  const { data: feed } = useQuery({
+    queryKey: ["activity"], queryFn: () => api.get("/activity"), refetchInterval: 12000,
+  });
+  if (isLoading || !data) return <><PageHead title="Ops dashboard" /><SkeletonTiles n={6} /></>;
 
   const { throughput: t, fleet: f, success: s, queue_wait: q, burn: b } = data;
   const maxDay = Math.max(1, ...t.by_day.map((d: any) => d.count));
@@ -122,6 +128,30 @@ export default function Dashboard() {
           <div className="q">↳ {b.query}</div>
         </section>
       </div>
+
+      {/* live activity — the append-only StageEvent log, the truth-of-record */}
+      <section className="panel" style={{ marginTop: 16 }} aria-label="Recent activity">
+        <div className="flex-between" style={{ marginBottom: 10 }}>
+          <h2 style={{ margin: 0, fontSize: 15 }}>Recent activity</h2>
+          <span className="hint">live · from the StageEvent log</span>
+        </div>
+        {!feed || feed.length === 0 ? <div className="empty">no activity yet</div> : (
+          <div className="feed">
+            {feed.map((e: any, i: number) => (
+              <div className="feed-row" key={i}>
+                <span className="feed-time">{ago(e.at)}</span>
+                <span className="feed-actor">{e.actor}</span>
+                <span className="feed-label">
+                  {e.build_id
+                    ? <Link to={`/builds/${e.build_id}`}>{e.label}</Link>
+                    : e.label}
+                  {e.note && <span className="muted"> — {e.note}</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </>
   );
 }

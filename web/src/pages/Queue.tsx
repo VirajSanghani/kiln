@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
+import { useToast } from "../toast";
 import { Empty, Loading, PageHead, Panel, StatusPill, Toggle } from "../ui";
 
 const PROCESSES = ["FDM", "SLA", "SLS", "MJF"] as const;
@@ -9,6 +10,7 @@ const PROCESSES = ["FDM", "SLA", "SLS", "MJF"] as const;
 export default function Queue() {
   const qc = useQueryClient();
   const nav = useNavigate();
+  const toast = useToast();
   const [batch, setBatch] = useState<Record<string, boolean> | null>(null);
   const [dismissed, setDismissed] = useState<Set<number>>(new Set());
 
@@ -20,11 +22,13 @@ export default function Queue() {
 
   const queueJob = useMutation({
     mutationFn: (id: number) => api.post(`/jobs/${id}/queue`),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["jobs"] }); qc.invalidateQueries({ queryKey: ["schedule"] }); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["jobs"] }); qc.invalidateQueries({ queryKey: ["schedule"] }); toast.push("Triaged into the queue"); },
+    onError: (e: any) => toast.push(e?.message ?? "could not queue", "bad"),
   });
   const confirm = useMutation({
     mutationFn: (v: { printer_id: number; job_ids: number[] }) => api.post("/schedule/confirm", v),
-    onSuccess: (build) => nav(`/builds/${build.id}`),
+    onSuccess: (build) => { toast.push(`Build #${build.id} started on ${build.printer_name}`); nav(`/builds/${build.id}`); },
+    onError: (e: any) => toast.push(e?.message ?? "could not start build", "bad"),
   });
 
   if (jobsQ.isLoading || schedQ.isLoading || !jobsQ.data || !schedQ.data) {

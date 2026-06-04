@@ -1,20 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
+import { useToast } from "../toast";
 import { Loading, PageHead, Panel, StatusPill } from "../ui";
 
 export default function BuildDetail() {
   const { id } = useParams();
   const qc = useQueryClient();
+  const toast = useToast();
   const { data: b, isLoading } = useQuery({ queryKey: ["build", id], queryFn: () => api.get(`/builds/${id}`) });
 
   const act = useMutation({
     mutationFn: ({ path, body }: { path: string; body?: any }) => api.post(`/builds/${id}/${path}`, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["build", id] }),
+    onSuccess: (_d, v) => { qc.invalidateQueries({ queryKey: ["build", id] }); toast.push(`Build ${v.path === "advance" ? `→ ${v.body.to_stage.replace(/_/g, " ")}` : v.path}`); },
+    onError: (e: any) => toast.push(e?.message ?? "transition failed", "bad"),
   });
   const rejectJob = useMutation({
     mutationFn: (jobId: number) => api.post(`/jobs/${jobId}/reject`, { note: "rejected at QC" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["build", id] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["build", id] }); toast.push("Part rejected at QC", "info"); },
+    onError: (e: any) => toast.push(e?.message ?? "could not reject", "bad"),
   });
 
   if (isLoading || !b) return <><PageHead title="Build" /><Loading /></>;

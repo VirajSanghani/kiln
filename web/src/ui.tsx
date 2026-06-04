@@ -59,6 +59,24 @@ export function Loading() {
   return <div className="empty">loading…</div>;
 }
 
+export function Skeleton({ h = 16, w = "100%", style }: { h?: number; w?: number | string; style?: any }) {
+  return <div className="skel" style={{ height: h, width: w, ...style }} />;
+}
+
+export function SkeletonTiles({ n = 5 }: { n?: number }) {
+  return (
+    <div className="grid cols-2">
+      {Array.from({ length: n }).map((_, i) => (
+        <div className="metric" key={i}>
+          <Skeleton h={10} w={90} />
+          <Skeleton h={36} w={120} style={{ marginTop: 8 }} />
+          <Skeleton h={12} w="70%" style={{ marginTop: 8 }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
   return (
     <span className="toggle" onClick={onClick} role="button">

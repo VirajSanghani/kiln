@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
+import { useToast } from "../toast";
 import { Loading, PageHead, Panel } from "../ui";
 
 export default function Materials() {
   const qc = useQueryClient();
+  const toast = useToast();
   const { data, isLoading } = useQuery({ queryKey: ["materials"], queryFn: () => api.get("/materials") });
   const [amt, setAmt] = useState<Record<number, string>>({});
 
   const restock = useMutation({
     mutationFn: ({ id, delta }: { id: number; delta: number }) => api.post(`/materials/${id}/restock`, { delta, note: "restock" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["materials"] }),
+    onSuccess: (m) => { qc.invalidateQueries({ queryKey: ["materials"] }); toast.push(`Restocked ${m.spec} → ${m.qty_remaining}${m.unit}`); },
+    onError: (e: any) => toast.push(e?.message ?? "restock failed", "bad"),
   });
 
   if (isLoading || !data) return <><PageHead title="Material shelf" /><Loading /></>;

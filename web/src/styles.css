@@ -181,6 +181,86 @@ tr:last-child td { border-bottom: none; }
 .error { color: var(--red); font-size: 12px; }
 .hint { font-size: 11px; color: var(--stone-dim); }
 
+/* ---- transitions (subtle, 150ms; no bounce) ---- */
+.btn, .nav a, .card, .kc, .bell-btn, .pill, .lnk, .field input, .field select, .field textarea {
+  transition: background .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;
+}
+
+/* ---- skeleton (opacity pulse, NO gradient) ---- */
+@keyframes kln-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.skel { background: var(--panel-2); border-radius: 3px; animation: kln-pulse 1.2s ease-in-out infinite; }
+
+/* ---- toasts ---- */
+.toast-stack { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 80; }
+@keyframes kln-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.toast { display: flex; align-items: center; gap: 9px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 4px; padding: 10px 14px; font-size: 12px; color: var(--ink); max-width: 360px;
+  animation: kln-rise .15s ease; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.toast-ok .toast-dot { background: var(--green); }
+.toast-bad .toast-dot { background: var(--red); }
+.toast-info .toast-dot { background: var(--amber); }
+
+/* ---- notification bell ---- */
+.bell { position: fixed; top: 22px; right: 28px; z-index: 60; }
+.bell-btn { position: relative; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+  background: var(--panel); border: 1px solid var(--line); color: var(--stone); padding: 6px 12px; border-radius: 3px; cursor: pointer; }
+.bell-btn:hover { color: var(--ink); border-color: var(--stone-dim); }
+.bell-badge { position: absolute; top: -7px; right: -7px; background: var(--amber); color: var(--bg);
+  font-size: 9px; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 4px; font-weight: 600; }
+.bell-scrim { position: fixed; inset: 0; z-index: 59; }
+.bell-panel { position: absolute; top: 36px; right: 0; width: 320px; max-height: 70vh; overflow-y: auto; z-index: 61;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px; }
+.bell-head { padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 10px; text-transform: uppercase; letter-spacing: .14em; color: var(--stone-dim); }
+.bell-item { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; width: 100%; text-align: left;
+  background: none; border: none; border-bottom: 1px solid var(--line); padding: 10px 14px; cursor: pointer; }
+.bell-item:hover { background: var(--panel-2); }
+.bell-item.read { opacity: 0.55; }
+.bell-kind { font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.bell-msg { grid-column: 1 / -1; font-size: 12px; color: var(--ink); }
+.bell-time { font-size: 10px; color: var(--stone-dim); }
+
+/* ---- kanban board ---- */
+.kboard { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
+.kcol { flex: 1 0 224px; min-width: 224px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px;
+  padding: 10px; display: flex; flex-direction: column; scroll-snap-align: start; }
+.kcol.over { border-color: var(--amber); background: var(--panel); }
+.kcol-head { display: flex; justify-content: space-between; align-items: baseline; }
+.kcol-title { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--stone); }
+.kcol-count { font-family: var(--mono); font-size: 11px; color: var(--stone-dim); }
+.kcol-hint { font-size: 9.5px; color: var(--stone-dim); margin: 2px 0 10px; }
+.kcol-body { display: flex; flex-direction: column; gap: 8px; min-height: 40px; flex: 1; }
+.kc { background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 3px; padding: 9px 11px; }
+.kc.drag { cursor: grab; }
+.kc.drag:active { cursor: grabbing; }
+.kc.dragging { opacity: 0.5; }
+.kc:hover { border-color: var(--stone-dim); }
+.prio-critical { border-left-color: var(--amber); }
+.prio-high { border-left-color: var(--amber-dim); }
+.prio-normal { border-left-color: var(--blue); }
+.prio-low { border-left-color: var(--line); }
+.kc-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.kc-title { font-size: 12.5px; color: var(--ink); font-weight: 500; }
+.kc-proc { font-size: 9.5px; color: var(--stone-dim); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; }
+.kc-meta { font-size: 10.5px; color: var(--stone-dim); margin: 5px 0 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.kc-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.kc-links { display: flex; gap: 8px; }
+.lnk { background: none; border: none; color: var(--stone-dim); font-family: var(--mono); font-size: 10.5px; cursor: pointer; padding: 0; }
+.lnk:hover { color: var(--amber); }
+.lnk-go { color: var(--amber); }
+.lnk-go:hover { color: var(--amber-dim); }
+.dl { font-size: 9.5px; color: var(--stone-dim); }
+.dl-soon { color: var(--amber); }
+.dl-over { color: var(--red); }
+
+/* ---- activity feed ---- */
+.feed { display: flex; flex-direction: column; }
+.feed-row { display: grid; grid-template-columns: 52px 64px 1fr; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 12px; align-items: baseline; }
+.feed-row:last-child { border-bottom: none; }
+.feed-time { color: var(--stone-dim); font-size: 10.5px; }
+.feed-actor { color: var(--amber); }
+.feed-label { color: var(--ink); }
+
 /* responsive */
 @media (max-width: 920px) {
   .app { flex-direction: column; }

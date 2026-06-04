@@ -1,8 +1,10 @@
 import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./auth";
 import { Loading } from "./ui";
+import NotificationBell from "./components/NotificationBell";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Board from "./pages/Board";
 import Queue from "./pages/Queue";
 import BuildDetail from "./pages/BuildDetail";
 import TicketDetail from "./pages/TicketDetail";
@@ -12,6 +14,7 @@ import Submit from "./pages/Submit";
 
 const OP_NAV = [
   { to: "/", label: "Dashboard", end: true },
+  { to: "/board", label: "Board" },
   { to: "/queue", label: "Queue & Schedule" },
   { to: "/fleet", label: "Fleet" },
   { to: "/materials", label: "Material shelf" },
@@ -46,10 +49,12 @@ function Shell() {
         </div>
       </aside>
       <main className="main">
+        <NotificationBell />
         <Routes>
           {isOp ? (
             <>
               <Route path="/" element={<Dashboard />} />
+              <Route path="/board" element={<Board />} />
               <Route path="/queue" element={<Queue />} />
               <Route path="/fleet" element={<Fleet />} />
               <Route path="/materials" element={<Materials />} />

@@ -15,40 +15,45 @@ faking machine telemetry.
 ## Screenshots
 
 **Ops dashboard (the hero).** Every figure derives from a real query over real event data —
-each tile shows its backing query (the `↳` line) and a real trend/target frame. Sparse data
-shows real sparse numbers, never placeholders. "Quiet Utility" — dark warm instrument
-readout, Fraunces + JetBrains Mono.
+each tile shows its backing query (the `↳` line) and a real trend/target frame; sparse data
+shows real sparse numbers, never placeholders. Below, a **live activity feed** streamed from
+the append-only StageEvent log. "Quiet Utility" — dark warm instrument readout, Fraunces +
+JetBrains Mono.
 
 ![Ops dashboard](docs/screenshots/01-dashboard.png)
 
-**Queue & Schedule board.** Triage lanes (needs-triage → queued → scheduled), capability
-buckets with the *reason* each job is next + age-boost + swap flags + no-preemption /
-machine-occupied notes, and proposed Builds with per-process batching toggles to confirm.
+**Kanban board.** Live job flow across the lifecycle — Needs-triage → Queued → Scheduled →
+Printing → Post-process → Done, plus an Attention lane. Connected to the database and
+polling live; cards carry a priority accent, process, material, requester, age and
+deadline-urgency. **Drag (or click) a triage card into Queued** to do the real triage;
+build-driven columns reflect real Build state (stages advance at the Build level — honestly).
 
-![Queue & Schedule](docs/screenshots/02-queue.png)
+![Kanban board](docs/screenshots/02-board.png)
+
+**Queue & Schedule.** Triage lanes, capability buckets with the *reason* each job is next +
+age-boost + swap flags + no-preemption / machine-occupied notes, and proposed Builds with
+per-process batching toggles to confirm.
+
+![Queue & Schedule](docs/screenshots/03-queue.png)
 
 **Build detail.** The process recipe as a stage timeline (active / passive / on-machine,
-with who advanced it and when) and the Jobs on the plate — here a shared Done Build where
-one part was rejected at QC while its plate-mates shipped (the Build/Job split + derived
-status in action).
+with who advanced it and when) and the Jobs on the plate — here a shared Done Build where one
+part was rejected at QC while its plate-mates shipped (the Build/Job split + derived status).
 
-![Build detail](docs/screenshots/03-build-detail.png)
+![Build detail](docs/screenshots/04-build-detail.png)
 
-**Ticket detail.** The FileVersion chain (each labelled "slicer est.") — a re-print where v2
-failed and v3 printed — plus the ticket's jobs.
+**Ticket detail** (FileVersion chain, each labelled "slicer est." — a re-print where v2
+failed and v3 printed) and the **material shelf** (inventory that *informs, never blocks*:
+low-stock, shelf-life, drying, powder-refresh warnings):
 
-![Ticket detail](docs/screenshots/04-ticket-detail.png)
+![Ticket detail](docs/screenshots/05-ticket-detail.png)
+![Material shelf](docs/screenshots/06-materials.png)
 
-**Material shelf.** Inventory that *informs, never blocks*: low-stock, resin shelf-life,
-filament drying, and powder refresh-ratio warnings, with restock/adjust.
+**Fleet** (printer status — human-updated, no telemetry) and the **requester page** (submit +
+parsed slicer estimate + live job status + an in-app notification inbox):
 
-![Material shelf](docs/screenshots/05-materials.png)
-
-**Fleet** (printer status — human-updated, no telemetry) and the **requester submit page**
-(upload + parsed slicer estimate + track your jobs):
-
-![Fleet](docs/screenshots/06-fleet.png)
-![Requester submit](docs/screenshots/07-requester-submit.png)
+![Fleet](docs/screenshots/07-fleet.png)
+![Requester](docs/screenshots/08-requester-submit.png)
 
 ---
 
@@ -67,7 +72,10 @@ technician would actually live in.
 
 **As an operator** (`rk` / `rk-pw`):
 - Read the **ops dashboard** — throughput, fleet utilization, success rate, avg queue wait,
-  material burn — every number traceable to a query, framed against the prior period or a target.
+  material burn — every number traceable to a query, framed against the prior period or a
+  target, with a live activity feed.
+- Work the **Kanban board** — see every job's place in the lifecycle at a glance and
+  **triage by drag or click**; it polls live.
 - **Triage** submitted tickets into the queue.
 - Read the **capability-aware schedule**: each printer's ordered next-up list with the reason
   it's first, age-boosted jobs marked, spool-swap and no-preemption notes surfaced.
@@ -80,7 +88,8 @@ technician would actually live in.
 
 **As a requester** (`ana` / `ana-pw`):
 - **Submit a print** — upload an STL/gcode (or paste a slicer summary to get a parsed
-  time/material estimate) — and **track your jobs'** live status.
+  time/material estimate) — **track your jobs'** live status, and get **in-app notifications**
+  (started / failed / ready-for-pickup) in the inbox.
 
 ## How it works (the lifecycle)
 

@@ -423,6 +423,23 @@ def build():
         queued("spur gear", ben, ProcessType.SLS, "PA12", Priority.normal, 6, 5, (60, 60, 40), 90, "g")
         queued("bushing set", ana, ProcessType.SLS, "PA12", Priority.normal, 6, 4, (50, 50, 30), 60, "g")
 
+        def submitted(title, requester, process, mat, prio, age_h, bbox, est, unit):
+            tk = Ticket(requester=requester, title=title, target_process=process, material_pref=mat,
+                        priority=prio, created_at=ago(hours=age_h))
+            fv = FileVersion(ticket=tk, version_no=1, filename=f"{title.replace(' ', '_')}.stl",
+                             blob_key=f"dev/s/{title}.stl", slicer_name="PrusaSlicer",
+                             est_time_seconds=int(est * 120), est_material_qty=est, est_material_unit=unit,
+                             bbox_x=bbox[0], bbox_y=bbox[1], bbox_z=bbox[2], created_at=ago(hours=age_h))
+            tk.current_file_version = fv
+            j = Job(ticket=tk, created_at=ago(hours=age_h))
+            session.add_all([tk, fv, j])
+            ev(session, to="submitted", at=ago(hours=age_h), job=j, actor=requester)
+            backlog.append(j)
+
+        submitted("drone arm", ana, ProcessType.FDM, "PETG", Priority.high, 2, (90, 30, 12), 28, "g")
+        submitted("bearing jig", ben, ProcessType.SLS, "PA12", Priority.normal, 3, (70, 70, 35), 85, "g")
+        submitted("face plate", ana, ProcessType.SLA, "Clear V4", Priority.normal, 1, (50, 50, 8), 18, "mL")
+
         # ---- notifications (a couple, generated on requester-relevant events) ----
         session.add_all([
             Notification(user=ana, ticket=t5, job=j_t5, kind=NotificationKind.failed,
