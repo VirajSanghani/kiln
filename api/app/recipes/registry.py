@@ -35,6 +35,11 @@ class StageDef:
     label: str
     type: str  # StageType.active | StageType.passive
     allowed_next: tuple[str, ...]
+    # Does this stage tie up the PRINTER itself? On-machine stages (printing, SLS/MJF
+    # cooldown, SLA wash/cure) keep the printer unavailable for a new Build; off-machine
+    # bench stages (FDM support removal, QC) free the printer. Feeds the scheduler's
+    # availability check (Phase 4 resolution of the Phase 3 open question).
+    occupies_machine: bool = False
 
 
 A = StageType.active
@@ -42,29 +47,29 @@ P = StageType.passive
 
 RECIPES: dict[ProcessType, tuple[StageDef, ...]] = {
     ProcessType.FDM: (
-        StageDef("printing", "Printing", A, ("support_removal",)),
-        StageDef("support_removal", "Support removal", A, ("qc",)),
+        StageDef("printing", "Printing", A, ("support_removal",), occupies_machine=True),
+        StageDef("support_removal", "Support removal", A, ("qc",)),   # off-machine bench work
         StageDef("qc", "QC", A, ("done",)),
         StageDef("done", "Done", P, ()),
     ),
     ProcessType.SLA: (
-        StageDef("printing", "Printing", A, ("drain",)),
+        StageDef("printing", "Printing", A, ("drain",), occupies_machine=True),
         StageDef("drain", "Drain", P, ("wash",)),          # passive: excess resin drips off
-        StageDef("wash", "Wash", A, ("cure",)),            # active: IPA wash, operator
-        StageDef("cure", "Cure", A, ("qc",)),              # active: UV cure station in use
+        StageDef("wash", "Wash", A, ("cure",), occupies_machine=True),   # on-machine station
+        StageDef("cure", "Cure", A, ("qc",), occupies_machine=True),     # on-machine cure
         StageDef("qc", "QC", A, ("done",)),
         StageDef("done", "Done", P, ()),
     ),
     ProcessType.SLS: (
-        StageDef("printing", "Printing", A, ("cooldown",)),
-        StageDef("cooldown", "Cooldown", P, ("depowder",)),  # passive: chamber cools, no work
-        StageDef("depowder", "Depowder", A, ("qc",)),
+        StageDef("printing", "Printing", A, ("cooldown",), occupies_machine=True),
+        StageDef("cooldown", "Cooldown", P, ("depowder",), occupies_machine=True),  # part still in chamber
+        StageDef("depowder", "Depowder", A, ("qc",)),                    # off-machine station
         StageDef("qc", "QC", A, ("done",)),
         StageDef("done", "Done", P, ()),
     ),
     ProcessType.MJF: (
-        StageDef("printing", "Printing", A, ("cooldown",)),
-        StageDef("cooldown", "Cooldown", P, ("depowder",)),
+        StageDef("printing", "Printing", A, ("cooldown",), occupies_machine=True),
+        StageDef("cooldown", "Cooldown", P, ("depowder",), occupies_machine=True),
         # Optional Dye: depowder may go to dye OR skip straight to qc — a real branch,
         # which is exactly why allowed_next is a list, not a single successor.
         StageDef("depowder", "Depowder", A, ("dye", "qc")),
@@ -105,3 +110,7 @@ def is_terminal_stage(process: ProcessType, name: str) -> bool:
 
 def is_active(process: ProcessType, name: str) -> bool:
     return stage_def(process, name).type == StageType.active
+
+
+def occupies_machine(process: ProcessType, name: str) -> bool:
+    return stage_def(process, name).occupies_machine

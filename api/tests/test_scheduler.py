@@ -217,6 +217,33 @@ def test_determinism_same_inputs_same_order(session):
     assert [p.job_ids for p in v1.proposals] == [p.job_ids for p in v2.proposals]
 
 
+# ============================================ occupies_machine (Phase 4 resolution)
+def test_sls_mid_cooldown_printer_is_not_proposed_against(session):
+    # SLS printer marked idle, but holding a running Build in 'cooldown' (occupies_machine).
+    p = mk_printer(session, process=ProcessType.SLS, loaded="PA12", status=PrinterStatus.idle, vol=(200, 200, 330))
+    running = Build(printer=p, process=ProcessType.SLS, current_stage="cooldown", status=BuildStatus.running)
+    session.add(running)
+    session.flush()
+    mk_job(session, process=ProcessType.SLS, material="PA12", bbox=(60, 60, 40))
+
+    view = build_schedule(session, cfg())
+    bucket = _bucket(view, p.id)
+    assert bucket.busy is True                     # machine-occupied
+    assert bucket.running_build_id == running.id
+    assert "occupies the machine" in (bucket.preemption_note or "")
+    assert _proposal(view, p.id) is None           # not proposed against until it clears
+
+    # ... but an off-machine post-print stage (FDM support removal) leaves it available
+    fp = mk_printer(session, process=ProcessType.FDM, loaded="PETG", status=PrinterStatus.idle)
+    fbuild = Build(printer=fp, process=ProcessType.FDM, current_stage="support_removal", status=BuildStatus.running)
+    session.add(fbuild)
+    session.flush()
+    mk_job(session, process=ProcessType.FDM, material="PETG", bbox=(40, 40, 20))
+    view2 = build_schedule(session, cfg())
+    assert _bucket(view2, fp.id).busy is False
+    assert _proposal(view2, fp.id) is not None     # available despite a bench-stage build
+
+
 # ============================================================== operator confirm
 def test_confirm_proposal_materializes_and_starts(session):
     p = mk_printer(session, process=ProcessType.FDM, loaded="PETG")

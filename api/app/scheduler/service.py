@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import select
 
+from .. import recipes
 from .. import stage_engine as engine
 from ..audit import recompute_job_columns
 from ..enums import BuildStatus, PrinterStatus, QueueState
@@ -68,17 +69,24 @@ def build_schedule(session, config: SchedulerConfig | None = None) -> SchedulerV
         ordered = policy.ordered(matched, config)
 
         running = _running_build(session, printer)
-        # §5 no preemption: only an ACTIVELY PRINTING printer is untouchable. Availability
-        # keys on the human-updated Printer.status (no telemetry) — a printer the operator
-        # has marked idle is available even if a prior Build is in a post-print stage
-        # (that Build is surfaced as information; the scheduler proposes, the human disposes).
+        # §5 no preemption + Phase-4 occupies_machine: a printer is unavailable for a new
+        # Build if it is actively printing OR it holds a running Build in an on-machine
+        # stage (SLS/MJF cooldown, SLA wash/cure — the part still ties up the printer).
+        # Off-machine post-print stages (FDM support removal at a bench) leave it available.
+        # Availability still keys on human-updated status — no telemetry.
         is_printing = printer.status == PrinterStatus.printing
-        busy = printer.status != PrinterStatus.idle
+        occupied = running is not None and recipes.occupies_machine(running.process, running.current_stage)
+        busy = printer.status != PrinterStatus.idle or occupied
         preemption_note = None
         if is_printing and running is not None:
             preemption_note = (
                 f"Printing Build #{running.id} — not preemptable; a Critical arrival goes "
                 f"front-of-next-up, it does not interrupt the running print"
+            )
+        elif occupied:
+            preemption_note = (
+                f"Build #{running.id} in '{running.current_stage}' occupies the machine — "
+                f"unavailable for a new Build until it clears"
             )
 
         buckets.append(Bucket(
@@ -89,8 +97,8 @@ def build_schedule(session, config: SchedulerConfig | None = None) -> SchedulerV
             next_up=[_ranked(j, printer, config) for j in ordered],
         ))
 
-        # Proposals only for AVAILABLE (idle) printers — never for one currently printing.
-        if printer.status == PrinterStatus.idle:
+        # Proposals only for AVAILABLE printers: idle AND not machine-occupied.
+        if printer.status == PrinterStatus.idle and not occupied:
             prop = propose_for_printer(session, printer, ordered, config)
             if prop is not None:
                 proposals.append(prop)

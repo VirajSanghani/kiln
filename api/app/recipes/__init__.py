@@ -13,6 +13,7 @@ from .registry import (  # noqa: F401
     entry_stage,
     is_active,
     is_terminal_stage,
+    occupies_machine,
     recipe_for,
     stage_def,
     stage_index,
