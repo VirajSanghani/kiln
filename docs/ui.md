@@ -69,6 +69,32 @@ material shelf, **fleet**, ticket detail) + the hero dashboard, plus the minimal
 submit page, all ship and run against the live API. The pre-authorized trim (thin
 fleet/requester) was available but not needed.
 
+## Phase 6 — dashboard design-quality pass (before → after)
+
+Worked in a sandbox (`web/research/designs/`, since deleted) then ran the ordered passes
+(critique → fix → audit → polish → normalize) against `DESIGN_LANGUAGE.md`. What changed:
+
+- **Theme (biggest):** light stone → the binding **dark warm instrument palette**
+  (`--bg #1a1714` … exact tokens). Card radius 10px → 4px; label tracking → .14em.
+- **Hierarchy:** uniform 3+2 equal-weight grid → **three tiers** — hero **Throughput**
+  (Fraunces 46px) in the top-left golden triangle spanning 1.6fr, supporting Utilization +
+  Success (30px), tertiary Queue-wait + Burn below with dim query captions.
+- **Context (§8 synergy):** every bare number now carries a **real** frame — throughput
+  *▲ +N vs prior 14d* (prior-window query), utilization *N of M in use* (split), success
+  *▼ below target 90%* (labelled target, not a measurement), queue-wait *vs prior 14d* or an
+  honest *"no prior-period data"*, burn *window vs prior*. The `↳` query caption stays.
+- **Anti-slop:** removed all emoji-as-icons (`⚡ ✓ ⚠ ✕`) → status carried by color + text;
+  no gradients/shadows/glass anywhere; amber is now strictly semantic (active nav, current
+  stage, the sparkline/alert) — everything else stone/ink on near-black.
+- **Data-ink / charts:** flat sparkline + flat split bar + sorted material bars; no
+  gridlines/ticks/3D/pies.
+- **A11y:** amber `:focus-visible` rings on links/buttons/inputs/nav; `<section aria-label>`
+  per tile; decorative bars `aria-hidden`; responsive reflow to one column < 920px.
+
+Verified live on real data: the hero/supporting/tertiary layout holds, and running
+submit→triage→confirm→advance→done moved throughput 1→2, utilization 60→80%, success
+50→60%, queue-wait 10→11 jobs, PA12-CF burn 60→85g — wiring + honesty unchanged.
+
 ## Future seams (not built)
-Notification inbox UI; production web image (multi-stage static build) — Phase 6;
-optimistic updates / websockets; pagination on long lists.
+Notification inbox UI; optimistic updates / websockets; pagination on long lists;
+the S3 blob backend behind `app/storage.py`.
