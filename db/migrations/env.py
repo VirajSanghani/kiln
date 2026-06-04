@@ -20,8 +20,10 @@ _db_url = os.environ.get("DATABASE_URL")
 if _db_url:
     config.set_main_option("sqlalchemy.url", _db_url)
 
-# Phase 1 will set this to the app's Base.metadata.
-target_metadata = None
+# Phase 1: wire the app's metadata so autogenerate sees every model.
+from app.models import Base  # noqa: E402  (import after sys.path/env are set up)
+
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
