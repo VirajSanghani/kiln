@@ -1,6 +1,6 @@
 # KILN — Data Model (Phase 1)
 
-Implements Part III of `KILN_BUILD_PLAN.md`. The **Build/Job split** and the
+Implements the KILN data model. The **Build/Job split** and the
 **FileVersion chain** exist from this first migration (`0002_core_schema`), not as a
 retrofit. Status is **derived**, never stored as a single field; the append-only logs are
 the truth-of-record and the mutable columns are guarded by a reconcile check.

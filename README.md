@@ -129,7 +129,7 @@ Three ideas drive the architecture:
 |---|---|
 | **Backend** | Python · FastAPI · SQLAlchemy 2 · Alembic (real migrations) · PostgreSQL 16 |
 | **Frontend** | React · Vite · TypeScript · TanStack Query · two surfaces (operator console + requester submit) |
-| **Design** | "Quiet Utility" — Fraunces + JetBrains Mono, dark warm instrument palette ([`DESIGN_LANGUAGE.md`](DESIGN_LANGUAGE.md)) |
+| **Design** | "Quiet Utility" — Fraunces + JetBrains Mono, dark warm instrument palette |
 | **Auth** | JWT + bcrypt, roles `operator`/`requester` (no SSO) |
 | **Storage** | blob store for STL/gcode — local volume in dev, S3-compatible seam |
 | **Slicer** | summary parser for PrusaSlicer / Cura / Bambu + manual structured-paste fallback |

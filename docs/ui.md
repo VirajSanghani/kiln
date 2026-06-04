@@ -72,7 +72,7 @@ fleet/requester) was available but not needed.
 ## Phase 6 — dashboard design-quality pass (before → after)
 
 Worked in a sandbox (`web/research/designs/`, since deleted) then ran the ordered passes
-(critique → fix → audit → polish → normalize) against `DESIGN_LANGUAGE.md`. What changed:
+(critique → fix → audit → polish → normalize) against the Quiet Utility design language. What changed:
 
 - **Theme (biggest):** light stone → the binding **dark warm instrument palette**
   (`--bg #1a1714` … exact tokens). Card radius 10px → 4px; label tracking → .14em.

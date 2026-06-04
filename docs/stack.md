@@ -56,7 +56,7 @@ docker compose down -v         # also drop the database volume (clean slate)
 
 ## Run it (local, no Docker — the SQLite fallback)
 
-SQLite is a **local-dev fallback only** (`KILN_BUILD_PLAN.md` Part IV); Postgres is the
+SQLite is a **local-dev fallback only**; Postgres is the
 real target. Useful for fast unit work without containers.
 
 ```bash
